@@ -30,15 +30,30 @@ router.post("/", (req, res) => {
     const stmt = db.prepare(
       "INSERT INTO bookings (catalog_item_id, name, address, start_date, end_date) VALUES (?, ?, ?, ?, ?)"
     );
-    stmt.run(
-      catalog_item_id,
-      name,
-      req.body.address,
-      req.body.start_date,
-      req.body.end_date
-    );
+    stmt.run(catalog_item_id, name, address, start_date, end_date);
     stmt.finalize();
-    res.send("Booking created");
+    res.json({ catalog_item_id, name, address, start_date, end_date });
   });
   db.close();
 });
+
+router.delete("/:id", verifyToken, (req, res) => {
+  const db = new sqlite3.Database("./db.sqlite");
+  const { id } = req.params;
+  db.serialize(() => {
+    const stmt = db.prepare("DELETE FROM bookings WHERE id = (?)");
+    stmt.run(id);
+    stmt.finalize();
+    res.json({ status: "success" });
+  });
+  db.close();
+});
+
+module.exports = router;
+// The bookings router has three routes:
+// A GET route that fetches all bookings from the database.
+// A POST route that creates a new booking in the database.
+// A DELETE route that deletes a booking from the database.
+// The bookings router uses the verifyToken middleware to authenticate requests.
+// The bookings router uses the sqlite3 module to interact with the SQLite database.
+// The bookings router uses the /db.sqlite file as the database.
